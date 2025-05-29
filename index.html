@@ -57,7 +57,7 @@
     const chat = document.getElementById('chat');
     const input = document.getElementById('input');
 
-    // Replace with your OpenRouter DeepSeek API key
+    // Replace with your real OpenRouter API key
     const OPENROUTER_API_KEY = "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";
 
     function addMessage(text, sender) {
@@ -78,7 +78,7 @@
           "Authorization": `Bearer ${OPENROUTER_API_KEY}`
         },
         body: JSON.stringify({
-          model: "deepseek-r1",
+          model: "deepseek/deepseek-r1:free",
           messages: [
             {
               role: "system",
@@ -90,7 +90,15 @@
       });
 
       if (!response.ok) {
-        return "Oops! Pixel is feeling sleepy and can't answer right now. Try again later!";
+        let errorText;
+        try {
+          const errorData = await response.json();
+          errorText = errorData.error || JSON.stringify(errorData);
+        } catch {
+          errorText = await response.text();
+        }
+        console.error("OpenRouter API error:", errorText);
+        return `Oops! Pixel is feeling sleepy and can't answer right now. Try again later! (Error: ${errorText})`;
       }
 
       const data = await response.json();
@@ -114,7 +122,6 @@
 
           addMessage(pixelReply, 'bot');
         } catch (error) {
-          // Remove the "thinking" message
           const thinkingMsg = [...chat.children].find(
             (m) => m.textContent.includes("Pixel is thinking")
           );
