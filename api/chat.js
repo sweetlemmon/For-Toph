@@ -1,33 +1,31 @@
 // api/chat.js
 export default async function handler(req, res) {
-  // Restrict CORS to your site
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', 'https://for-toph.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!req.headers['content-type']?.includes('application/json')) {
     return res.status(415).json({ error: 'Unsupported media type' });
   }
 
   try {
-    const { history } = req.body;
+    let { history } = req.body;
     if (!Array.isArray(history)) {
       return res.status(400).json({ error: 'history must be an array' });
     }
 
+    // cap to last 12 turns server-side
+    history = history.slice(-12);
+
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
     if (!OPENROUTER_API_KEY) {
-      console.error('Missing API key');
+      console.error('ERROR: Missing OpenRouter API key');
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    // Build the full message list
     const messages = [
       {
         role: 'system',
@@ -36,7 +34,6 @@ export default async function handler(req, res) {
       ...history
     ];
 
-    // Call OpenRouter without an AbortController (no early timeout)
     const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -55,7 +52,7 @@ export default async function handler(req, res) {
 
     if (!openRouterRes.ok) {
       const errText = await openRouterRes.text();
-      console.error('OpenRouter error:', openRouterRes.status, errText);
+      console.error('OpenRouter API error:', openRouterRes.status, errText);
       return res.status(502).json({
         error: `Aurora couldn’t reach the ocean: ${openRouterRes.statusText}`
       });
@@ -68,12 +65,13 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
 
   } catch (err) {
-    console.error('Backend error:', err);
+    console.error('Unexpected backend error:', err);
     return res.status(500).json({
-      error: `Ocean currents disrupted: ${err.message || 'Internal server error'}`
+      error: `Internal server error: ${err.message}`
     });
   }
 }
+
 
 
 
