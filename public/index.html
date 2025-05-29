@@ -11,18 +11,19 @@
   <style>
     /* Full-screen, centered container */
     html, body {
-      width: 100%; height: 100%;
       margin: 0; padding: 0;
+      width: 100%; height: 100%;
       background: linear-gradient(135deg, #e3f2fd, #80deea);
       font-family: 'Quicksand', 'Comic Neue', sans-serif;
       display: flex; align-items: center; justify-content: center;
     }
     .container {
+      position: relative;
       width: 90%; max-width: 600px; height: 90vh;
       background: rgba(255,255,255,0.9);
       border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      position: relative; overflow: hidden;
       display: flex; flex-direction: column;
+      overflow: hidden;
     }
     .container::before {
       content: '';
@@ -32,8 +33,8 @@
       animation: drift 15s linear infinite; z-index: 0;
     }
     @keyframes drift {
-      from { transform: translate(0,0) rotate(0deg) }
-      to   { transform: translate(10%,10%) rotate(2deg) }
+      from { transform: translate(0,0) rotate(0deg); }
+      to   { transform: translate(10%,10%) rotate(2deg); }
     }
 
     header {
@@ -60,7 +61,7 @@
       flex: 1 1 auto; z-index: 1;
       display: flex; flex-direction: column;
       padding: 0 1rem 0.8rem;
-      min-height: 0; /* important for flex scrolling */
+      min-height: 0;
     }
 
     #chat {
@@ -110,29 +111,29 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px) }
-      to   { opacity: 1; transform: translateY(0) }
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes floatBot {
-      0%,100% { transform: translateY(0) }
-      50%     { transform: translateY(-3px) }
+      0%,100% { transform: translateY(0); }
+      50%     { transform: translateY(-3px); }
     }
     @keyframes floatBubbles {
-      0%,100% { transform: translateY(0); opacity:1 }
-      50%     { transform: translateY(-5px); opacity:0.7 }
+      0%,100% { transform: translateY(0); opacity:1; }
+      50%     { transform: translateY(-5px); opacity:0.7; }
     }
 
-    /* narrower, centered input */
+    /* Centered, narrower input with placeholder centered */
     #input {
       flex: 0 0 auto;
-      width: 70%;               /* shorter width */
-      margin: 0.4rem auto;      /* center horizontally */
+      width: 70%;
+      margin: 0.4rem auto;
       padding: 0.5rem 0.8rem;
       font-size: 0.9rem;
       border: none;
       border-radius: 20px;
       box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-      text-align: center;       /* center the placeholder/text */
+      text-align: center;
       display: block;
     }
     #input::placeholder { color: #81d4fa; }
@@ -155,29 +156,34 @@
 
     <div class="chat-wrapper">
       <div id="chat"></div>
-      <input id="input" type="text" placeholder="Say something to Aurora..." autocomplete="off"/>
+      <input
+        id="input"
+        type="text"
+        placeholder="Say something to Aurora..."
+        autocomplete="off"
+      />
       <div id="status">Ready to chat!</div>
     </div>
   </div>
 
-<script>
-    const chatEl  = document.getElementById('chat');
-    const inputEl = document.getElementById('input');
-    const statusEl= document.getElementById('status');
-    const BACKEND_URL = '/api/chat';
+  <script>
+    const chatEl   = document.getElementById('chat');
+    const inputEl  = document.getElementById('input');
+    const statusEl = document.getElementById('status');
+    const URL      = '/api/chat';
 
-    let convo = [];
-    let lastSent = 0;         // timestamp of last send in ms
-    const SEND_COOLDOWN = 2000; // 2 seconds
+    let convo    = [];
+    let lastSent = 0;
+    const COOLDOWN = 5000; // 5 seconds
 
-    function addMessage(txt, sender, thinking=false, error=false) {
+    function addMessage(txt, who, thinking = false, error = false) {
       const m = document.createElement('div');
-      m.classList.add('message', sender);
+      m.classList.add('message', who);
       if (thinking) m.classList.add('thinking');
       if (error)    m.classList.add('error');
       m.innerHTML = `
         <div style="font-weight:bold; margin-bottom:3px;">
-          ${sender==='bot' ? '🦭 Aurora' : 'You'}
+          ${who==='bot' ? '🦭 Aurora' : 'You'}
         </div>
         ${txt}
       `;
@@ -186,86 +192,77 @@
       return m;
     }
 
-    function updateStatus(txt, isErr=false) {
+    function setStatus(txt, isErr = false) {
       statusEl.textContent = txt;
       statusEl.style.color = isErr ? '#c62828' : '#006064';
     }
 
     async function getReply(userTxt) {
-      updateStatus('Aurora is swimming through waves...');
-      convo.push({ role:'user', content: userTxt });
-
-      // cap to last 6 turns
-      const recent = convo.slice(-6);
-
-      const res = await fetch(BACKEND_URL, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ history: recent })
+      setStatus('Aurora is swimming through waves...');
+      convo.push({ role: 'user', content: userTxt });
+      const payload = convo.slice(-6);
+      const res = await fetch(URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ history: payload })
       });
-
       if (!res.ok) {
-        const e = await res.json().catch(()=>({}));
+        const e = await res.json().catch(() => ({}));
         throw new Error(e.error || res.statusText);
       }
       const { reply } = await res.json();
-      convo.push({ role:'assistant', content: reply });
+      convo.push({ role: 'assistant', content: reply });
       return reply;
     }
 
     inputEl.addEventListener('keydown', async e => {
       if (e.key !== 'Enter') return;
       const now = Date.now();
-
-      // throttle: disallow if within cooldown
-      if (now - lastSent < SEND_COOLDOWN) {
-        const wait = Math.ceil((SEND_COOLDOWN - (now - lastSent)) / 1000);
-        updateStatus(`Please wait ${wait}s before sending again`, true);
+      if (now - lastSent < COOLDOWN) {
+        const wait = Math.ceil((COOLDOWN - (now - lastSent)) / 1000);
+        setStatus(`Please wait ${wait}s before sending again`, true);
         return;
       }
 
       const txt = inputEl.value.trim();
       if (!txt) return;
       if (txt.length > 300) {
-        updateStatus('Too long! Try shorter splash 🐚', true);
+        setStatus('Too long! Try shorter splash 🐚', true);
         return;
       }
 
-      // send
+      // Throttle & disable immediately
       lastSent = now;
-      addMessage(txt, 'user');
-      inputEl.value = '';
       inputEl.disabled = true;
 
-      const thinkingEl = addMessage('Aurora is thinking...', 'bot', true);
+      addMessage(txt, 'user');
+      inputEl.value = '';
+
+      const thinking = addMessage('Aurora is thinking...', 'bot', true);
       try {
         const r = await getReply(txt);
-        chatEl.removeChild(thinkingEl);
+        chatEl.removeChild(thinking);
         addMessage(r, 'bot');
-        updateStatus('Aurora responded!');
-
-      } catch(err) {
+        setStatus('Aurora responded!');
+      } catch (err) {
         console.error(err);
-        chatEl.removeChild(thinkingEl);
-        // show the real error message
+        chatEl.removeChild(thinking);
         addMessage(`🌧️ Oops! ${err.message}`, 'bot', false, true);
-        updateStatus('Connection issue detected', true);
-      } finally {
-        // keep input disabled for full cooldown period
-        const elapsed = Date.now() - lastSent;
-        const remaining = Math.max(0, SEND_COOLDOWN - elapsed);
-        setTimeout(() => {
-          inputEl.disabled = false;
-          inputEl.focus();
-          updateStatus('Ready to chat!');
-        }, remaining);
+        setStatus('Connection issue detected', true);
       }
+
+      // Keep disabled for full cooldown
+      setTimeout(() => {
+        inputEl.disabled = false;
+        inputEl.focus();
+        setStatus('Ready to chat!');
+      }, COOLDOWN);
     });
 
-    // initial greeting
+    // Initial greeting
     setTimeout(() => {
       const greet = "Hi Toph! I'm Aurora 🦭 Ready to chat? 💬";
-      convo.push({ role:'assistant', content: greet });
+      convo.push({ role: 'assistant', content: greet });
       addMessage(greet, 'bot');
     }, 500);
 
@@ -273,5 +270,6 @@
   </script>
 </body>
 </html>
+
 
 
