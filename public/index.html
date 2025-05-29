@@ -1,9 +1,14 @@
+<!-- /public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat with Aurora 🦭</title>
+
+  <!-- Cute Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@1,700&family=Quicksand:wght@500&display=swap" rel="stylesheet"/>
+
   <style>
     :root {
       --water-blue: #e3f2fd;
@@ -14,200 +19,138 @@
       --white: #ffffff;
       --shadow: rgba(2, 136, 209, 0.2);
     }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Quicksand', 'Comic Neue', sans-serif;
       background: linear-gradient(135deg, var(--water-blue), var(--light-teal));
       color: var(--dark-teal);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
+      display: flex; flex-direction: column;
+      align-items: center; padding: 2rem;
     }
-    
+
     .container {
-      width: 100%;
-      max-width: 800px;
-      background: rgba(255, 255, 255, 0.92);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px var(--shadow);
-      overflow: hidden;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(178, 235, 242, 0.5);
+      width: 100%; max-width: 800px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 20px; box-shadow: 0 10px 30px var(--shadow);
+      overflow: hidden; backdrop-filter: blur(5px);
+      border: 1px solid rgba(178,235,242,0.5);
     }
-    
+
     header {
       background: linear-gradient(90deg, var(--deep-blue), var(--medium-teal));
-      padding: 25px 20px 40px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
+      padding: 25px 20px 40px; text-align: center;
+      position: relative; overflow: hidden;
     }
-    
-    h1 {
-      color: var(--white);
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    
+    h1 { color: var(--white); font-size: 2.5rem; margin-bottom: 10px;
+         text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .subtitle {
-      color: rgba(255, 255, 255, 0.95);
-      font-size: 1.2rem;
-      margin-top: 10px;
+      color: rgba(255,255,255,0.95); font-size: 1.2rem; margin-top: 10px;
     }
-    
     .welcome-bubble {
-      background: rgba(255, 255, 255, 0.25);
-      border-radius: 20px;
-      padding: 15px;
-      margin: 25px auto 15px;
-      max-width: 80%;
+      background: rgba(255,255,255,0.25); border-radius: 20px;
+      padding: 15px; margin: 25px auto 15px; max-width: 80%;
       backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255,255,255,0.4);
       font-size: 1.1rem;
     }
-    
-    .chat-container {
-      padding: 20px;
-      position: relative;
-    }
-    
+
+    .chat-container { padding: 20px; position: relative; }
     #chat {
-      height: 400px;
-      overflow-y: auto;
-      padding: 20px;
-      background: rgba(178, 235, 242, 0.15);
-      border-radius: 15px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      height: 400px; overflow-y: auto; padding: 20px;
+      /* seal trail + water */
+      background: url('https://twemoji.maxcdn.com/v/latest/svg/1f9ad.svg') no-repeat 98% bottom,
+                  rgba(178,235,242,0.15);
+      background-size: 40px, auto;
+      border-radius: 15px; margin-bottom: 20px;
+      display: flex; flex-direction: column; gap: 15px;
       border: 2px solid var(--light-teal);
     }
-    
+
     .message {
-      padding: 15px 20px;
-      border-radius: 20px;
-      max-width: 85%;
-      position: relative;
-      animation: fadeIn 0.3s ease-out;
+      padding: 15px 20px; border-radius: 20px; max-width: 85%;
+      position: relative; animation: fadeIn 0.3s ease-out;
       line-height: 1.5;
     }
-    
     .user {
       background: linear-gradient(135deg, var(--deep-blue), var(--medium-teal));
-      color: var(--white);
-      align-self: flex-end;
+      color: var(--white); align-self: flex-end;
       border-bottom-right-radius: 5px;
-      box-shadow: 0 3px 10px rgba(41, 182, 246, 0.3);
+      box-shadow: 0 3px 10px rgba(41,182,246,0.3);
     }
-    
     .bot {
       background: linear-gradient(135deg, var(--light-teal), var(--medium-teal));
-      color: var(--white);
-      align-self: flex-start;
+      color: var(--white); align-self: flex-start;
       border-bottom-left-radius: 5px;
-      box-shadow: 0 3px 10px rgba(77, 208, 225, 0.3);
+      box-shadow: 0 3px 10px rgba(77,208,225,0.3);
+      animation: floatBot 1.6s ease-in-out infinite;
     }
-    
     .thinking {
-      background: rgba(128, 222, 234, 0.4);
-      color: var(--dark-teal);
+      background: rgba(128,222,234,0.4); color: var(--dark-teal);
     }
-    
+    .thinking::after {
+      content: ' 💭💧';
+      animation: floatBubbles 1.5s infinite ease-in-out;
+    }
     .error {
-      background: #ffebee;
-      color: #c62828;
+      background: #ffebee; color: #c62828;
     }
-    
-    .message-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-    
-    .seal-icon {
-      margin-right: 10px;
-      font-size: 1.2rem;
-    }
-    
+
+    .message-header { display: flex; align-items: center;
+                       margin-bottom: 8px; font-weight: bold; }
+    .seal-icon { margin-right: 10px; font-size: 1.2rem; }
+
     #input {
-      width: 100%;
-      padding: 16px 20px;
-      border: none;
-      border-radius: 30px;
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), 
+      width: 100%; padding: 16px 20px; border: none;
+      border-radius: 30px; background: rgba(255,255,255,0.9);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1),
                   0 3px 10px var(--shadow);
-      font-size: 1rem;
-      color: var(--dark-teal);
+      font-size: 1rem; color: var(--dark-teal);
       transition: all 0.3s ease;
     }
-    
     #input:focus {
       outline: none;
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), 
-                  0 0 0 3px rgba(0, 188, 212, 0.3);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1),
+                  0 0 0 3px rgba(0,188,212,0.3);
       background: var(--white);
     }
-    
-    #input::placeholder {
-      color: #81d4fa;
-    }
-    
+    #input::placeholder { color: #81d4fa; }
+
     #status {
-      margin-top: 15px;
-      font-size: 0.9rem;
-      color: var(--dark-teal);
-      text-align: center;
+      margin-top: 15px; font-size: 0.9rem;
+      color: var(--dark-teal); text-align: center;
       min-height: 20px;
     }
-    
+
     .water-wave {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 40px;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%230288d1" fill-opacity="0.3" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,261.3C672,256,768,224,864,218.7C960,213,1056,235,1152,224C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 40px;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%230288d1" fill-opacity="0.3" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,261.3C672,256,768,224,864,218.7C960,213,1056,235,1152,224C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320,1056,320,960,320,864,320,768,320,672,320,576,320,480,320,384,320,288,320,192,320,96,320,48,320,0,320Z"></path></svg>');
       background-size: cover;
     }
-    
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
+    @keyframes floatBubbles {
+      0%   { transform: translateY(0);  opacity: 1; }
+      50%  { transform: translateY(-5px); opacity: 0.7; }
+      100% { transform: translateY(0);  opacity: 1; }
+    }
+    @keyframes floatBot {
+      0%   { transform: translateY(1px); }
+      50%  { transform: translateY(-3px); }
+      100% { transform: translateY(1px); }
+    }
+
     @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-      
-      .container {
-        border-radius: 15px;
-      }
-      
-      h1 {
-        font-size: 2rem;
-      }
-      
-      .subtitle {
-        font-size: 1rem;
-      }
-      
-      #chat {
-        height: 350px;
-        padding: 15px;
-      }
+      body { padding: 1rem; }
+      .container { border-radius: 15px; }
+      h1 { font-size: 2rem; }
+      .subtitle { font-size: 1rem; }
+      #chat { height: 350px; padding: 15px; }
     }
   </style>
 </head>
@@ -216,13 +159,13 @@
     <header>
       <h1>Chat with Aurora 🦭</h1>
       <p class="subtitle">Your friendly seal companion</p>
-      <div class="welcome-bubble">Hey Toph! I'm here to keep you company <3</div>
+      <div class="welcome-bubble">💙 Hey Toph! I’m here to keep you company <3 🌊</div>
       <div class="water-wave"></div>
     </header>
-    
+
     <div class="chat-container">
       <div id="chat"></div>
-      <input id="input" type="text" placeholder="Say something to Aurora..." autocomplete="off" />
+      <input id="input" type="text" placeholder="Say something to Aurora..." autocomplete="off"/>
       <div id="status">Ready to chat!</div>
     </div>
   </div>
@@ -231,8 +174,6 @@
     const chat = document.getElementById('chat');
     const input = document.getElementById('input');
     const status = document.getElementById('status');
-
-    // IMPORTANT: Replace with your actual Vercel URL
     const BACKEND_URL = "/api/chat";
 
     function addMessage(text, sender, isThinking = false, isError = false) {
@@ -240,17 +181,15 @@
       msg.classList.add('message', sender);
       if (isThinking) msg.classList.add('thinking');
       if (isError) msg.classList.add('error');
-      
+
       const senderName = sender === 'user' ? 'You' : 'Aurora';
-      
       msg.innerHTML = `
         <div class="message-header">
           ${sender === 'bot' ? '<span class="seal-icon">🦭</span>' : ''}
           ${senderName}
         </div>
-        ${isError ? text : text}
+        ${text}
       `;
-      
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
       return msg;
@@ -263,70 +202,70 @@
 
     async function getAuroraReply(userMessage) {
       updateStatus("Aurora is connecting to the ocean waves...");
-      
       try {
-        const response = await fetch(BACKEND_URL, {
+        const res = await fetch(BACKEND_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userMessage })
         });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(`${response.status} - ${errorData.error || response.statusText}`);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(`${res.status} – ${err.error || res.statusText}`);
         }
-
-        const data = await response.json();
-        return data.reply;
-        
-      } catch (error) {
-        console.error("Backend error:", error);
-        throw new Error(`Ocean connection failed: ${error.message}`);
+        const { reply } = await res.json();
+        return reply;
+      } catch (err) {
+        console.error("Backend error:", err);
+        throw new Error(`Ocean connection failed: ${err.message}`);
       }
     }
 
-    input.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter' && input.value.trim() !== '') {
-        const userMsg = input.value.trim();
-        addMessage(userMsg, 'user');
-        input.value = '';
-        input.disabled = true;
-        
-        const thinkingMsg = addMessage("Aurora is swimming through thoughts... 🫧", 'bot', true);
-        updateStatus("Aurora is thinking...");
+    input.addEventListener('keydown', async e => {
+      if (e.key !== 'Enter') return;
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
 
-        try {
-          const auroraReply = await getAuroraReply(userMsg);
-          chat.removeChild(thinkingMsg);
-          addMessage(auroraReply, 'bot');
-          updateStatus("Aurora responded!");
-        } catch (error) {
-          chat.removeChild(thinkingMsg);
-          addMessage(
-            `🦭 <strong>Ocean Currents Problem!</strong><br>
-            ${error.message}<br>
-            <small>Try again when waves are calmer</small>`,
-            'bot',
-            false,
-            true
-          );
-          updateStatus("Connection issue detected", true);
-        } finally {
-          input.disabled = false;
-          input.focus();
-        }
+      // Pre-validate length
+      if (userMsg.length > 300) {
+        updateStatus("Too long! Try a shorter splash 🐚", true);
+        return;
+      }
+
+      addMessage(userMsg, 'user');
+      input.value = '';
+      input.disabled = true;
+
+      const thinkingMsg = addMessage("Aurora is swimming through thoughts... 🫧", 'bot', true);
+      updateStatus("Aurora is thinking...");
+
+      try {
+        const reply = await getAuroraReply(userMsg);
+        chat.removeChild(thinkingMsg);
+        addMessage(reply, 'bot');
+        updateStatus("Aurora responded!");
+      } catch (err) {
+        chat.removeChild(thinkingMsg);
+        addMessage(
+          "🦭 <strong>Ocean Currents Problem!</strong><br>" +
+          "Sorry! 🌧️ Aurora can't reach the ocean right now. Let's try again soon!",
+          'bot',
+          false,
+          true
+        );
+        updateStatus("Connection issue detected", true);
+      } finally {
+        input.disabled = false;
+        input.focus();
       }
     });
-    
-    // Add welcome message
+
+    // Welcome message
     setTimeout(() => {
       addMessage("Hello Toph! I'm Aurora, your friendly seal! 🌊 I'm here to swim alongside you through any topic ^^ What's on your mind today?", 'bot');
     }, 1000);
-    
-    // Focus input
+
     input.focus();
   </script>
 </body>
 </html>
+
