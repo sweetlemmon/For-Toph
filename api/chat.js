@@ -1,6 +1,6 @@
 // api/chat.js
 export default async function handler(req, res) {
-  // CORS
+  // Restrict CORS
   res.setHeader('Access-Control-Allow-Origin', 'https://for-toph.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     if (!Array.isArray(history)) {
       return res.status(400).json({ error: 'history must be an array' });
     }
-    // cap to last 6 turns to keep payload tiny
+    // Cap to last 6 turns
     history = history.slice(-6);
 
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -29,9 +29,9 @@ export default async function handler(req, res) {
       role: 'system',
       content: "You are Aurora, a friendly seal companion. Respond cheerfully in 1–2 sentences."
     };
-    const messages = [ systemPrompt, ...history ];
+    const messages = [systemPrompt, ...history];
 
-    // helper: call OpenRouter once
+    // Helper to call OpenRouter
     async function callAPI() {
       return fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -50,21 +50,20 @@ export default async function handler(req, res) {
       });
     }
 
-    // retry logic for 429
+    // Retry on 429 with backoff
     let attempt = 0, openRouterRes;
     while (attempt < 3) {
       openRouterRes = await callAPI();
       if (openRouterRes.status !== 429) break;
       attempt++;
-      const waitMs = 500 * attempt; // 0.5s, then 1s
+      const waitMs = 500 * attempt; // 0.5s → 1s
       console.warn(`429—retrying in ${waitMs}ms (attempt ${attempt})`);
       await new Promise(r => setTimeout(r, waitMs));
     }
 
     if (!openRouterRes.ok) {
-      const errorText = await openRouterRes.text();
-      console.error('OpenRouter API error:', openRouterRes.status, errorText);
-      // friendly 429 message
+      const errText = await openRouterRes.text();
+      console.error('OpenRouter API error:', openRouterRes.status, errText);
       if (openRouterRes.status === 429) {
         return res.status(429).json({
           error: 'Aurora is busy swimming with other seals—please try again in a few seconds!'
@@ -78,6 +77,7 @@ export default async function handler(req, res) {
     const data = await openRouterRes.json();
     const reply = data.choices?.[0]?.message?.content?.trim()
       || "Aurora is doing flips underwater… 🦭🌊 Try again soon!";
+
     return res.status(200).json({ reply });
 
   } catch (err) {
@@ -87,7 +87,6 @@ export default async function handler(req, res) {
     });
   }
 }
-
 
 
 
