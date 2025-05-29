@@ -1,8 +1,7 @@
-<!-- /public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat with Aurora 🦭</title>
 
@@ -10,157 +9,180 @@
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@1,700&family=Quicksand:wght@500&display=swap" rel="stylesheet"/>
 
   <style>
-    :root {
-      --water-blue: #e3f2fd;
-      --deep-blue: #0288d1;
-      --light-teal: #80deea;
-      --medium-teal: #4dd0e1;
-      --dark-teal: #0097a7;
-      --white: #ffffff;
-      --shadow: rgba(2, 136, 209, 0.2);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
+    /* make full-screen, no scroll */
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #e3f2fd, #80deea);
       font-family: 'Quicksand', 'Comic Neue', sans-serif;
-      background: linear-gradient(135deg, var(--water-blue), var(--light-teal));
-      color: var(--dark-teal);
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
+    /* centering container at a smaller width */
     .container {
-      width: 100%; max-width: 800px;
-      background: rgba(255,255,255,0.92);
-      border-radius: 20px; box-shadow: 0 10px 30px var(--shadow);
-      overflow: hidden; backdrop-filter: blur(5px);
-      border: 1px solid rgba(178,235,242,0.5);
+      display: flex;
+      flex-direction: column;
+      width: 90%;
+      max-width: 600px;
+      height: 90vh;
+      background: rgba(255,255,255,0.9);
+      border-radius: 30px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* gently animating wave overlay */
+    .container::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: -20%;
+      width: 140%;
+      height: 140%;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'><path fill='%2380deea' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,261.3C672,256,768,224,864,218.7C960,213,1056,235,1152,224C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320,1056,320,960,320,864,320,768,320,672,320,576,320,480,320,384,320,288,320,192,320,96,320,48,320,0,320Z'></path></svg>") center center/cover;
+      animation: drift 15s linear infinite;
+      z-index: 0;
+    }
+    @keyframes drift {
+      from { transform: translate(0,0) rotate(0deg) }
+      to   { transform: translate(10%,10%) rotate(2deg) }
     }
 
     header {
-      background: linear-gradient(90deg, var(--deep-blue), var(--medium-teal));
-      padding: 25px 20px 40px; text-align: center;
-      position: relative; overflow: hidden;
+      flex: 0 0 auto;
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      position: relative;
+      z-index: 1;
     }
-    h1 { color: var(--white); font-size: 2.5rem; margin-bottom: 10px;
-         text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .subtitle {
-      color: rgba(255,255,255,0.95); font-size: 1.2rem; margin-top: 10px;
-    }
-    .welcome-bubble {
-      background: rgba(255,255,255,0.25); border-radius: 20px;
-      padding: 15px; margin: 25px auto 15px; max-width: 80%;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255,255,255,0.4);
-      font-size: 1.1rem;
+      header h1 {
+        margin-bottom: 0.2rem;
+        font-size: 2rem;
+        color: #0288d1;
+      }
+      .subtitle {
+        color: #006064;
+        font-size: 1rem;
+      }
+      .welcome-bubble {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.7rem 1rem;
+        background: rgba(255,255,255,0.6);
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+        color: #004d40;
+      }
+
+    .chat-container {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      padding: 0 1rem 1rem;
+      position: relative;
+      z-index: 1;
     }
 
-    .chat-container { padding: 20px; position: relative; }
     #chat {
-      height: 400px; overflow-y: auto; padding: 20px;
-      /* seal trail + water */
-      background: url('https://twemoji.maxcdn.com/v/latest/svg/1f9ad.svg') no-repeat 98% bottom,
-                  rgba(178,235,242,0.15);
-      background-size: 40px, auto;
-      border-radius: 15px; margin-bottom: 20px;
-      display: flex; flex-direction: column; gap: 15px;
-      border: 2px solid var(--light-teal);
+      flex: 1;
+      background: rgba(178,235,242,0.4);
+      border-radius: 20px;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      /* subtle seal footprints in corner */
+      background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f9ad.svg');
+      background-repeat: no-repeat;
+      background-position: bottom right;
+      background-size: 30px;
     }
 
     .message {
-      padding: 15px 20px; border-radius: 20px; max-width: 85%;
-      position: relative; animation: fadeIn 0.3s ease-out;
-      line-height: 1.5;
+      max-width: 80%;
+      padding: 0.8rem 1rem;
+      border-radius: 20px;
+      line-height: 1.4;
+      position: relative;
+      font-size: 0.95rem;
+      animation: fadeIn 0.2s ease-out;
     }
-    .user {
-      background: linear-gradient(135deg, var(--deep-blue), var(--medium-teal));
-      color: var(--white); align-self: flex-end;
-      border-bottom-right-radius: 5px;
-      box-shadow: 0 3px 10px rgba(41,182,246,0.3);
-    }
-    .bot {
-      background: linear-gradient(135deg, var(--light-teal), var(--medium-teal));
-      color: var(--white); align-self: flex-start;
-      border-bottom-left-radius: 5px;
-      box-shadow: 0 3px 10px rgba(77,208,225,0.3);
-      animation: floatBot 1.6s ease-in-out infinite;
-    }
-    .thinking {
-      background: rgba(128,222,234,0.4); color: var(--dark-teal);
-    }
-    .thinking::after {
-      content: ' 💭💧';
-      animation: floatBubbles 1.5s infinite ease-in-out;
-    }
-    .error {
-      background: #ffebee; color: #c62828;
-    }
+      .message.user {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #0288d1, #4dd0e1);
+        color: white;
+        border-bottom-right-radius: 5px;
+      }
+      .message.bot {
+        align-self: flex-start;
+        background: linear-gradient(135deg, #80deea, #4dd0e1);
+        color: white;
+        border-bottom-left-radius: 5px;
+        animation: floatBot 3s ease-in-out infinite;
+      }
+      .message.thinking {
+        background: rgba(255,255,255,0.7);
+        color: #006064;
+      }
+      .message.thinking::after {
+        content: '💭💧';
+        position: absolute;
+        right: 10px;
+        bottom: 5px;
+        font-size: 1.1rem;
+        animation: floatBubbles 1.5s infinite ease-in-out;
+      }
+      .message.error {
+        background: #ffebee;
+        color: #c62828;
+      }
 
-    .message-header { display: flex; align-items: center;
-                       margin-bottom: 8px; font-weight: bold; }
-    .seal-icon { margin-right: 10px; font-size: 1.2rem; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px) }
+      to   { opacity: 1; transform: translateY(0) }
+    }
+    @keyframes floatBot {
+      0%,100% { transform: translateY(0) }
+      50%     { transform: translateY(-4px) }
+    }
+    @keyframes floatBubbles {
+      0%,100% { transform: translateY(0); opacity: 1 }
+      50%     { transform: translateY(-6px); opacity: 0.7 }
+    }
 
     #input {
-      width: 100%; padding: 16px 20px; border: none;
-      border-radius: 30px; background: rgba(255,255,255,0.9);
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1),
-                  0 3px 10px var(--shadow);
-      font-size: 1rem; color: var(--dark-teal);
-      transition: all 0.3s ease;
-    }
-    #input:focus {
+      flex: 0 0 auto;
+      width: 100%;
+      padding: 0.8rem 1rem;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 25px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
       outline: none;
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1),
-                  0 0 0 3px rgba(0,188,212,0.3);
-      background: var(--white);
     }
     #input::placeholder { color: #81d4fa; }
 
     #status {
-      margin-top: 15px; font-size: 0.9rem;
-      color: var(--dark-teal); text-align: center;
-      min-height: 20px;
-    }
-
-    .water-wave {
-      position: absolute; bottom: 0; left: 0;
-      width: 100%; height: 40px;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%230288d1" fill-opacity="0.3" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,261.3C672,256,768,224,864,218.7C960,213,1056,235,1152,224C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320,1056,320,960,320,864,320,768,320,672,320,576,320,480,320,384,320,288,320,192,320,96,320,48,320,0,320Z"></path></svg>');
-      background-size: cover;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes floatBubbles {
-      0%   { transform: translateY(0);  opacity: 1; }
-      50%  { transform: translateY(-5px); opacity: 0.7; }
-      100% { transform: translateY(0);  opacity: 1; }
-    }
-    @keyframes floatBot {
-      0%   { transform: translateY(1px); }
-      50%  { transform: translateY(-3px); }
-      100% { transform: translateY(1px); }
-    }
-
-    @media (max-width: 600px) {
-      body { padding: 1rem; }
-      .container { border-radius: 15px; }
-      h1 { font-size: 2rem; }
-      .subtitle { font-size: 1rem; }
-      #chat { height: 350px; padding: 15px; }
+      text-align: center;
+      font-size: 0.85rem;
+      color: #006064;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
       <h1>Chat with Aurora 🦭</h1>
       <p class="subtitle">Your friendly seal companion</p>
-      <div class="welcome-bubble">💙 Hey Toph! I’m here to keep you company <3 🌊</div>
-      <div class="water-wave"></div>
+      <div class="welcome-bubble">💙 Hey Toph! Ready for some splashy chat? 🌊</div>
     </header>
 
     <div class="chat-container">
@@ -174,19 +196,16 @@
     const chat = document.getElementById('chat');
     const input = document.getElementById('input');
     const status = document.getElementById('status');
-    const BACKEND_URL = "/api/chat";
+    const BACKEND_URL = '/api/chat';
 
     function addMessage(text, sender, isThinking = false, isError = false) {
       const msg = document.createElement('div');
       msg.classList.add('message', sender);
       if (isThinking) msg.classList.add('thinking');
       if (isError) msg.classList.add('error');
-
-      const senderName = sender === 'user' ? 'You' : 'Aurora';
       msg.innerHTML = `
-        <div class="message-header">
-          ${sender === 'bot' ? '<span class="seal-icon">🦭</span>' : ''}
-          ${senderName}
+        <div style="font-weight:bold; margin-bottom:4px;">
+          ${sender==='bot'? '🦭 Aurora':'You'}
         </div>
         ${text}
       `;
@@ -195,77 +214,56 @@
       return msg;
     }
 
-    function updateStatus(message, isError = false) {
-      status.textContent = message;
-      status.style.color = isError ? '#c62828' : '#0288d1';
+    function updateStatus(txt, err=false) {
+      status.textContent = txt;
+      status.style.color = err ? '#c62828' : '#006064';
     }
 
-    async function getAuroraReply(userMessage) {
-      updateStatus("Aurora is connecting to the ocean waves...");
-      try {
-        const res = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: userMessage })
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(`${res.status} – ${err.error || res.statusText}`);
-        }
-        const { reply } = await res.json();
-        return reply;
-      } catch (err) {
-        console.error("Backend error:", err);
-        throw new Error(`Ocean connection failed: ${err.message}`);
+    async function getAuroraReply(msg) {
+      updateStatus('Aurora is swimming through waves...');
+      const res = await fetch(BACKEND_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(()=>({}));
+        throw new Error(e.error||res.statusText);
       }
+      return (await res.json()).reply;
     }
 
-    input.addEventListener('keydown', async e => {
-      if (e.key !== 'Enter') return;
-      const userMsg = input.value.trim();
-      if (!userMsg) return;
-
-      // Pre-validate length
-      if (userMsg.length > 300) {
-        updateStatus("Too long! Try a shorter splash 🐚", true);
+    input.addEventListener('keydown', async e=>{
+      if (e.key!=='Enter' || !input.value.trim()) return;
+      const txt = input.value.trim();
+      if (txt.length>300) {
+        updateStatus('Too loooong! Try shorter splash 🐚', true);
         return;
       }
-
-      addMessage(userMsg, 'user');
-      input.value = '';
-      input.disabled = true;
-
-      const thinkingMsg = addMessage("Aurora is swimming through thoughts... 🫧", 'bot', true);
-      updateStatus("Aurora is thinking...");
-
+      addMessage(txt, 'user');
+      input.value=''; input.disabled=true;
+      const think = addMessage('Aurora is thinking...', 'bot', true);
       try {
-        const reply = await getAuroraReply(userMsg);
-        chat.removeChild(thinkingMsg);
+        const reply = await getAuroraReply(txt);
+        chat.removeChild(think);
         addMessage(reply, 'bot');
-        updateStatus("Aurora responded!");
-      } catch (err) {
-        chat.removeChild(thinkingMsg);
-        addMessage(
-          "🦭 <strong>Ocean Currents Problem!</strong><br>" +
-          "Sorry! 🌧️ Aurora can't reach the ocean right now. Let's try again soon!",
-          'bot',
-          false,
-          true
-        );
-        updateStatus("Connection issue detected", true);
+        updateStatus('Aurora responded!');
+      } catch(err) {
+        chat.removeChild(think);
+        addMessage('🌧️ Oops! Aurora can’t reach the ocean right now.', 'bot', false, true);
+        updateStatus('Connection issue detected', true);
       } finally {
-        input.disabled = false;
-        input.focus();
+        input.disabled=false; input.focus();
       }
     });
 
-    // Welcome message
-    setTimeout(() => {
-      addMessage("Hello Toph! I'm Aurora, your friendly seal! 🌊 I'm here to swim alongside you through any topic ^^ What's on your mind today?", 'bot');
-    }, 1000);
-
+    // initial greeting
+    setTimeout(()=>{
+      addMessage("Hi Toph! I'm Aurora 🦭 Ready to chat? 💬", 'bot');
+    },500);
     input.focus();
   </script>
 </body>
 </html>
+
 
