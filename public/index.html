@@ -72,7 +72,7 @@
     const input = document.getElementById('input');
     const status = document.getElementById('status');
 
-    // IMPORTANT: Use relative path for same-origin deployment
+    // IMPORTANT: Replace with your actual Vercel URL
     const BACKEND_URL = "/api/chat";
 
     function addMessage(text, sender, isThinking = false, isError = false) {
@@ -94,6 +94,37 @@
       status.style.color = isError ? '#e53170' : '#6c757d';
     }
 
+    async function testBackendConnection() {
+      updateStatus("Checking Pixel's magic cloud...");
+      try {
+        const testResponse = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ message: "Connection test" })
+        });
+        
+        if (!testResponse.ok) {
+          const errorData = await testResponse.json().catch(() => ({}));
+          throw new Error(`Backend responded with ${testResponse.status}: ${errorData.error || testResponse.statusText}`);
+        }
+        
+        updateStatus("Ready to chat!");
+        return true;
+      } catch (error) {
+        console.error("Connection test failed:", error);
+        updateStatus("Could not connect to Pixel's magic", true);
+        addMessage(
+          `⚠️ <strong>Initialization Failed!</strong><br>
+          ${error.message}<br>
+          <small>URL: ${BACKEND_URL}</small>`,
+          'bot',
+          false,
+          true
+        );
+        return false;
+      }
+    }
+
     async function getPixelReply(userMessage) {
       updateStatus("Contacting Pixel's magic cloud...");
       
@@ -108,9 +139,8 @@
 
         // Handle HTTP errors
         if (!response.ok) {
-          const errorData = await response.json();
-          const errorMsg = errorData?.error || "Pixel's magic glitched!";
-          throw new Error(`${response.status} - ${errorMsg}`);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`${response.status} - ${errorData.error || response.statusText}`);
         }
 
         const data = await response.json();
@@ -156,39 +186,7 @@
     });
     
     // Test backend connection on load
-      async function testBackendConnection() {
-    updateStatus("Checking Pixel's magic cloud...");
-    try {
-      const testResponse = await fetch(BACKEND_URL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ message: "Connection test" })
-      });
-      
-      if (!testResponse.ok) {
-        const errorData = await testResponse.json().catch(() => ({}));
-        throw new Error(`${testResponse.status} - ${errorData.error || testResponse.statusText}`);
-      }
-      
-      updateStatus("Ready to chat!");
-      return true;
-    } catch (error) {
-      console.error("Connection test failed:", error);
-      updateStatus("Could not connect to Pixel's magic", true);
-      addMessage(
-        `⚠️ <strong>Initialization Failed!</strong><br>
-        Backend error: ${error.message}<br>
-        <small>URL: ${BACKEND_URL}</small>`,
-        'bot',
-        false,
-        true
-      );
-      return false;
-    }
-  }
-
-  // Run connection test on load
-  testBackendConnection();
-</script>
+    testBackendConnection();
+  </script>
 </body>
 </html>
