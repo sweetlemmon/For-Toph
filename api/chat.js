@@ -15,28 +15,33 @@ export default async function handler(req, res) {
   }
 
   // Check for valid content type
-  const contentType = req.headers['content-type'];
-  if (!contentType || !contentType.includes('application/json')) {
+  if (!req.headers['content-type']?.includes('application/json')) {
     return res.status(415).json({ error: 'Unsupported media type' });
   }
 
-  const userMessage = req.body?.message;
-  if (!userMessage) {
-    return res.status(400).json({ error: 'Missing message in request body' });
-  }
-
-  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-  if (!OPENROUTER_API_KEY) {
-    console.error('ERROR: OpenRouter API key is missing');
-    return res.status(500).json({ 
-      error: 'Server misconfiguration - API key not set' 
-    });
-  }
-
-  console.log('Received message:', userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : ''));
-
   try {
-    const startTime = Date.now();
+    // Parse JSON body
+    const body = JSON.parse(JSON.stringify(req.body));
+    const userMessage = body?.message;
+    
+    if (!userMessage || typeof userMessage !== 'string') {
+      return res.status(400).json({ error: 'Invalid message format' });
+    }
+
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    if (!OPENROUTER_API_KEY) {
+      console.error('ERROR: OpenRouter API key is missing');
+      return res.status(500).json({ 
+        error: 'Server configuration error - API key not set' 
+      });
+    }
+
+    console.log('Received message:', userMessage.substring(0, 100));
+
+    // Create timeout controller
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -58,19 +63,17 @@ export default async function handler(req, res) {
         max_tokens: 150,
         temperature: 0.7,
       }),
-      timeout: 10000  // 10 seconds timeout
-    });
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout));
 
-    const responseTime = Date.now() - startTime;
-    
     if (!openRouterResponse.ok) {
-      const errorData = await openRouterResponse.json();
+      const errorText = await openRouterResponse.text();
       console.error('OpenRouter API error:', {
         status: openRouterResponse.status,
-        error: errorData
+        error: errorText
       });
-      return res.status(502).json({
-        error: `OpenRouter error: ${errorData.error?.message || openRouterResponse.statusText}`
+      return res.status(openRouterResponse.status).json({
+        error: `OpenRouter error: ${openRouterResponse.statusText}`
       });
     }
 
@@ -78,18 +81,24 @@ export default async function handler(req, res) {
     const reply = responseData.choices?.[0]?.message?.content?.trim() || 
                   "Pixel is too sleepy to respond 💤";
 
-    console.log(`OpenRouter success! Response time: ${responseTime}ms`);
     return res.status(200).json({ reply });
     
   } catch (error) {
-    console.error('Full backend error:', {
+    console.error('Backend error:', {
+      name: error.name,
       message: error.message,
-      stack: error.stack,
-      body: req.body
+      stack: error.stack
     });
     
+    let errorMessage = 'Internal server error';
+    if (error.name === 'AbortError') {
+      errorMessage = 'Request to AI service timed out';
+    } else if (error.name === 'SyntaxError') {
+      errorMessage = 'Invalid JSON format';
+    }
+    
     return res.status(500).json({ 
-      error: `Connection to AI service failed: ${error.message}`
+      error: `Backend error: ${errorMessage}`
     });
   }
 }
