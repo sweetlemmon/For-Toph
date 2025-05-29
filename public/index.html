@@ -36,6 +36,14 @@
       color: #ff8fab;
       font-weight: bold;
     }
+    .error {
+      color: #e53170;
+      font-weight: bold;
+    }
+    .thinking {
+      color: #999;
+      font-style: italic;
+    }
     input {
       margin-top: 1rem;
       padding: 0.5rem;
@@ -45,9 +53,10 @@
       border: 1px solid #ccc;
       font-size: 1rem;
     }
-    .thinking {
-      color: #999;
-      font-style: italic;
+    #status {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #6c757d;
     }
   </style>
 </head>
@@ -56,25 +65,38 @@
   <p>Pixel is a magical fox who loves talking to you! 💬</p>
   <div id="chat"></div>
   <input id="input" type="text" placeholder="Say something to Pixel..." autocomplete="off" />
+  <div id="status">Ready to chat!</div>
 
   <script>
     const chat = document.getElementById('chat');
     const input = document.getElementById('input');
+    const status = document.getElementById('status');
 
-    // IMPORTANT: Replace with your actual Vercel URL
-    const BACKEND_URL = "https://your-project.vercel.app/api/chat";
+    // IMPORTANT: Use relative path for same-origin deployment
+    const BACKEND_URL = "/api/chat";
 
-    function addMessage(text, sender, isThinking = false) {
+    function addMessage(text, sender, isThinking = false, isError = false) {
       const msg = document.createElement('div');
       msg.classList.add('message', sender);
       if (isThinking) msg.classList.add('thinking');
-      msg.textContent = `[${sender === 'user' ? 'You' : 'Pixel'}]: ${text}`;
+      if (isError) msg.classList.add('error');
+      
+      const senderName = sender === 'user' ? 'You' : 'Pixel';
+      msg.innerHTML = isError ? text : `[${senderName}]: ${text}`;
+      
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
       return msg;
     }
 
+    function updateStatus(message, isError = false) {
+      status.textContent = message;
+      status.style.color = isError ? '#e53170' : '#6c757d';
+    }
+
     async function getPixelReply(userMessage) {
+      updateStatus("Contacting Pixel's magic cloud...");
+      
       try {
         const response = await fetch(BACKEND_URL, {
           method: "POST",
@@ -84,16 +106,19 @@
           body: JSON.stringify({ message: userMessage })
         });
 
-        const data = await response.json();
-        
+        // Handle HTTP errors
         if (!response.ok) {
-          return data.error || "Oops! Pixel's magic is glitching! 🦊⚡";
+          const errorData = await response.json();
+          const errorMsg = errorData?.error || "Pixel's magic glitched!";
+          throw new Error(`${response.status} - ${errorMsg}`);
         }
 
+        const data = await response.json();
         return data.reply;
+        
       } catch (error) {
-        console.error("Network error:", error);
-        return "Pixel can't reach the magic cloud! ☁️✨ Check your connection!";
+        console.error("Backend error:", error);
+        throw new Error(`Magic connection failed: ${error.message}`);
       }
     }
 
@@ -105,20 +130,58 @@
         input.disabled = true;
         
         const thinkingMsg = addMessage("Pixel is thinking... 🦊💭", 'bot', true);
+        updateStatus("Pixel is thinking...");
 
         try {
           const pixelReply = await getPixelReply(userMsg);
           chat.removeChild(thinkingMsg);
           addMessage(pixelReply, 'bot');
+          updateStatus("Pixel replied!");
         } catch (error) {
           chat.removeChild(thinkingMsg);
-          addMessage("Hmm... Pixel seems distracted. Try again soon!", 'bot');
+          addMessage(
+            `🦊 <strong>Pixel's Magic Alert!</strong><br>
+            ${error.message}<br>
+            <small>Check browser console for details</small>`,
+            'bot',
+            false,
+            true
+          );
+          updateStatus("Connection issue detected", true);
         } finally {
           input.disabled = false;
           input.focus();
         }
       }
     });
+    
+    // Test backend connection on load
+    (async function init() {
+      updateStatus("Checking Pixel's magic cloud...");
+      try {
+        const testResponse = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ message: "Connection test" })
+        });
+        
+        if (!testResponse.ok) {
+          throw new Error(`Backend responded with ${testResponse.status}`);
+        }
+        updateStatus("Ready to chat!");
+      } catch (error) {
+        console.error("Initialization error:", error);
+        updateStatus("Could not connect to Pixel's magic", true);
+        addMessage(
+          `⚠️ <strong>Initialization Failed!</strong><br>
+          Could not connect to backend at: ${BACKEND_URL}<br>
+          <small>${error.message}</small>`,
+          'bot',
+          false,
+          true
+        );
+      }
+    })();
   </script>
 </body>
 </html>
