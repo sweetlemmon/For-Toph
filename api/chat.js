@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: 'system',
-            content: "You are Aurora, a friendly seal companion. Respond in a cheerful, cute and playful way. You're talking to Toph. Reply in max 2 sentences."
+            content: "You are Aurora, a friendly companion. Respond in a cheerful, cute and playful way. You're talking to Toph. Reply in max 3 sentences."
           },
           { role: 'user', content: userMessage }
         ],
