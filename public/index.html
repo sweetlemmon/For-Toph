@@ -160,13 +160,15 @@
     </div>
   </div>
 
-  <script>
+<script>
     const chatEl  = document.getElementById('chat');
     const inputEl = document.getElementById('input');
     const statusEl= document.getElementById('status');
     const BACKEND_URL = '/api/chat';
 
     let convo = [];
+    let lastSent = 0;         // timestamp of last send in ms
+    const SEND_COOLDOWN = 2000; // 2 seconds
 
     function addMessage(txt, sender, thinking=false, error=false) {
       const m = document.createElement('div');
@@ -191,11 +193,10 @@
 
     async function getReply(userTxt) {
       updateStatus('Aurora is swimming through waves...');
-      // push user turn
       convo.push({ role:'user', content: userTxt });
 
-      // keep only last 12 turns to avoid huge payloads:
-      const recent = convo.slice(-12);
+      // cap to last 6 turns
+      const recent = convo.slice(-6);
 
       const res = await fetch(BACKEND_URL, {
         method:'POST',
@@ -208,20 +209,30 @@
         throw new Error(e.error || res.statusText);
       }
       const { reply } = await res.json();
-
-      // add assistant response
       convo.push({ role:'assistant', content: reply });
       return reply;
     }
 
     inputEl.addEventListener('keydown', async e => {
-      if (e.key!=='Enter' || !inputEl.value.trim()) return;
+      if (e.key !== 'Enter') return;
+      const now = Date.now();
+
+      // throttle: disallow if within cooldown
+      if (now - lastSent < SEND_COOLDOWN) {
+        const wait = Math.ceil((SEND_COOLDOWN - (now - lastSent)) / 1000);
+        updateStatus(`Please wait ${wait}s before sending again`, true);
+        return;
+      }
+
       const txt = inputEl.value.trim();
+      if (!txt) return;
       if (txt.length > 300) {
         updateStatus('Too long! Try shorter splash 🐚', true);
         return;
       }
 
+      // send
+      lastSent = now;
       addMessage(txt, 'user');
       inputEl.value = '';
       inputEl.disabled = true;
@@ -232,20 +243,27 @@
         chatEl.removeChild(thinkingEl);
         addMessage(r, 'bot');
         updateStatus('Aurora responded!');
+
       } catch(err) {
         console.error(err);
         chatEl.removeChild(thinkingEl);
-        // show the real error message:
+        // show the real error message
         addMessage(`🌧️ Oops! ${err.message}`, 'bot', false, true);
         updateStatus('Connection issue detected', true);
       } finally {
-        inputEl.disabled = false;
-        inputEl.focus();
+        // keep input disabled for full cooldown period
+        const elapsed = Date.now() - lastSent;
+        const remaining = Math.max(0, SEND_COOLDOWN - elapsed);
+        setTimeout(() => {
+          inputEl.disabled = false;
+          inputEl.focus();
+          updateStatus('Ready to chat!');
+        }, remaining);
       }
     });
 
     // initial greeting
-    setTimeout(()=>{
+    setTimeout(() => {
       const greet = "Hi Toph! I'm Aurora 🦭 Ready to chat? 💬";
       convo.push({ role:'assistant', content: greet });
       addMessage(greet, 'bot');
@@ -255,6 +273,5 @@
   </script>
 </body>
 </html>
-
 
 
