@@ -9,20 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@1,700&family=Quicksand:wght@500&display=swap" rel="stylesheet"/>
 
   <style>
-    /* full viewport, centered */
+    /* Full-screen, centered container */
     html, body {
-      margin: 0; height: 100%;
+      width: 100%; height: 100%;
+      margin: 0; padding: 0;
       background: linear-gradient(135deg, #e3f2fd, #80deea);
       font-family: 'Quicksand', 'Comic Neue', sans-serif;
       display: flex; align-items: center; justify-content: center;
     }
     .container {
-      position: relative;
       width: 90%; max-width: 600px; height: 90vh;
       background: rgba(255,255,255,0.9);
       border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      position: relative; overflow: hidden;
       display: flex; flex-direction: column;
-      overflow: hidden;
     }
     .container::before {
       content: '';
@@ -37,10 +37,8 @@
     }
 
     header {
-      flex: 0 0 auto;
-      text-align: center;
-      padding: 1.2rem 1rem 0.5rem;
-      z-index: 1;
+      flex: 0 0 auto; z-index: 1;
+      text-align: center; padding: 1.2rem 1rem 0.5rem;
     }
     header h1 {
       margin: 0; font-size: 1.8rem; color: #0288d1;
@@ -54,22 +52,19 @@
       background: rgba(255,255,255,0.6);
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.8);
-      font-size: 0.9rem;
-      color: #004d40;
+      font-size: 0.9rem; color: #004d40;
       margin-bottom: 0.5rem;
     }
 
     .chat-wrapper {
-      flex: 1 1 auto;
+      flex: 1 1 auto; z-index: 1;
       display: flex; flex-direction: column;
       padding: 0 1rem 0.8rem;
-      min-height: 0; /* important */
-      z-index: 1;
+      min-height: 0; /* important for flex scrolling */
     }
 
     #chat {
-      flex: 1 1 auto;
-      min-height: 0; /* critical so it won’t stretch */
+      flex: 1 1 auto; min-height: 0;
       background: rgba(178,235,242,0.4);
       border-radius: 20px;
       padding: 0.8rem;
@@ -85,22 +80,19 @@
       max-width: 80%;
       padding: 0.6rem 0.8rem;
       border-radius: 20px;
-      font-size: 0.9rem;
-      line-height: 1.3;
+      font-size: 0.9rem; line-height: 1.3;
       position: relative;
       animation: fadeIn 0.2s ease-out;
     }
     .message.user {
       align-self: flex-end;
       background: linear-gradient(135deg,#0288d1,#4dd0e1);
-      color: #fff;
-      border-bottom-right-radius: 5px;
+      color: #fff; border-bottom-right-radius: 5px;
     }
     .message.bot {
       align-self: flex-start;
       background: linear-gradient(135deg,#80deea,#4dd0e1);
-      color: #fff;
-      border-bottom-left-radius: 5px;
+      color: #fff; border-bottom-left-radius: 5px;
       animation: floatBot 3s ease-in-out infinite;
     }
     .message.thinking {
@@ -130,16 +122,18 @@
       50%     { transform: translateY(-5px); opacity:0.7 }
     }
 
-    /* smaller input */
+    /* narrower, centered input */
     #input {
       flex: 0 0 auto;
-      width: 100%;
+      width: 70%;               /* shorter width */
+      margin: 0.4rem auto;      /* center horizontally */
       padding: 0.5rem 0.8rem;
       font-size: 0.9rem;
       border: none;
       border-radius: 20px;
       box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-      margin-top: 0.4rem;
+      text-align: center;       /* center the placeholder/text */
+      display: block;
     }
     #input::placeholder { color: #81d4fa; }
 
@@ -172,34 +166,32 @@
     const statusEl = document.getElementById('status');
     const BACKEND_URL = '/api/chat';
 
-    // in-memory conversation: user+assistant roles
-    const convo = [];
+    let convo = [];
 
-    function addMessage(txt, sender, isThinking=false, isError=false) {
-      const msg = document.createElement('div');
-      msg.classList.add('message', sender);
-      if (isThinking) msg.classList.add('thinking');
-      if (isError) msg.classList.add('error');
-      msg.innerHTML = `
+    function addMessage(txt, sender, thinking=false, error=false) {
+      const m = document.createElement('div');
+      m.classList.add('message', sender);
+      if (thinking) m.classList.add('thinking');
+      if (error)    m.classList.add('error');
+      m.innerHTML = `
         <div style="font-weight:bold; margin-bottom:3px;">
-          ${sender==='bot'? '🦭 Aurora' : 'You'}
+          ${sender==='bot' ? '🦭 Aurora' : 'You'}
         </div>
         ${txt}
       `;
-      chatEl.appendChild(msg);
+      chatEl.appendChild(m);
       chatEl.scrollTop = chatEl.scrollHeight;
-      return msg;
+      return m;
     }
 
-    function updateStatus(txt, err=false) {
+    function updateStatus(txt, isErr=false) {
       statusEl.textContent = txt;
-      statusEl.style.color = err ? '#c62828' : '#006064';
+      statusEl.style.color = isErr ? '#c62828' : '#006064';
     }
 
     async function getReply(userTxt) {
       updateStatus('Aurora is swimming through waves...');
-      // push user turn
-      convo.push({ role:'user', content:userTxt });
+      convo.push({ role:'user', content: userTxt });
       const res = await fetch(BACKEND_URL, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
@@ -210,32 +202,32 @@
         throw new Error(e.error || res.statusText);
       }
       const { reply } = await res.json();
-      // push assistant turn
-      convo.push({ role:'assistant', content:reply });
+      convo.push({ role:'assistant', content: reply });
       return reply;
     }
 
     inputEl.addEventListener('keydown', async e => {
-      if (e.key !== 'Enter' || !inputEl.value.trim()) return;
-      const text = inputEl.value.trim();
-      if (text.length > 300) {
+      if (e.key!=='Enter' || !inputEl.value.trim()) return;
+      const txt = inputEl.value.trim();
+      if (txt.length > 300) {
         updateStatus('Too long! Try shorter splash 🐚', true);
         return;
       }
-      addMessage(text, 'user');
+      addMessage(txt, 'user');
       inputEl.value = '';
       inputEl.disabled = true;
 
       const thinkingEl = addMessage('Aurora is thinking...', 'bot', true);
       try {
-        const r = await getReply(text);
+        const r = await getReply(txt);
         chatEl.removeChild(thinkingEl);
         addMessage(r, 'bot');
         updateStatus('Aurora responded!');
       } catch(err) {
         chatEl.removeChild(thinkingEl);
-        addMessage('🌧️ Oops! Aurora can’t reach the ocean right now.', 'bot', false, true);
+        addMessage('🌧️ Oops! Something went wrong.', 'bot', false, true);
         updateStatus('Connection issue detected', true);
+        console.error(err);
       } finally {
         inputEl.disabled = false;
         inputEl.focus();
@@ -243,9 +235,9 @@
     });
 
     // initial greeting
-    setTimeout(() => {
+    setTimeout(()=>{
       const greet = "Hi Toph! I'm Aurora 🦭 Ready to chat? 💬";
-      convo.push({ role:'assistant', content:greet });
+      convo.push({ role:'assistant', content: greet });
       addMessage(greet, 'bot');
     }, 500);
 
