@@ -41,12 +41,17 @@ export default async function handler(req, res) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
+    // ADD REQUIRED OPENROUTER HEADERS
+    const openRouterHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'HTTP-Referer': 'https://your-project.vercel.app', // REPLACE WITH YOUR ACTUAL URL
+      'X-Title': 'Pixel Chat'
+    };
+
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`
-      },
+      headers: openRouterHeaders,
       body: JSON.stringify({
         model: 'deepseek/deepseek-r1:free',
         messages: [
