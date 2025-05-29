@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -20,7 +20,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Parse JSON body
     const body = req.body;
     const userMessage = body?.message;
     
@@ -38,15 +37,16 @@ export default async function handler(req, res) {
 
     console.log('Received message:', userMessage.substring(0, 100));
 
+    // Create timeout controller
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    // ADD REQUIRED OPENROUTER HEADERS
+    // Prepare headers
     const openRouterHeaders = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'HTTP-Referer': 'https://your-project.vercel.app', // REPLACE WITH YOUR ACTUAL URL
-      'X-Title': 'Pixel Chat'
+      'HTTP-Referer': 'https://for-toph.vercel.app', // REPLACE WITH YOUR URL
+      'X-Title': 'Aurora Chat'
     };
 
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: 'system',
-            content: 'You are Pixel, a magical fox AI companion. Respond in a cheerful, adorable, playful way. Be whimsical, emotionally warm, and use emojis occasionally. Keep responses under 3 sentences.'
+            content: 'You are Aurora, a friendly seal AI companion. Respond in a cheerful, supportive, and playful way. You love ocean themes and are emotionally warm. Use sea-related emojis occasionally. Keep responses under 3 sentences. You\'re talking to Toph.'
           },
           {
             role: 'user',
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
 
     const responseData = await openRouterResponse.json();
     const reply = responseData.choices?.[0]?.message?.content?.trim() || 
-                  "Pixel is too sleepy to respond 💤";
+                  "Aurora is swimming deep underwater... 🦭🌊 Try again later!";
 
     return res.status(200).json({ reply });
     
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
     }
     
     return res.status(500).json({ 
-      error: `Backend error: ${errorMessage}`
+      error: `Ocean currents disrupted: ${errorMessage}`
     });
   }
 }
