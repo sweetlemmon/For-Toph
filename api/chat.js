@@ -2,9 +2,9 @@ export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle CORS preflight immediately
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
   try {
     // Parse JSON body
-    const body = JSON.parse(JSON.stringify(req.body));
+    const body = req.body;
     const userMessage = body?.message;
     
     if (!userMessage || typeof userMessage !== 'string') {
@@ -38,7 +38,6 @@ export default async function handler(req, res) {
 
     console.log('Received message:', userMessage.substring(0, 100));
 
-    // Create timeout controller
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -64,7 +63,9 @@ export default async function handler(req, res) {
         temperature: 0.7,
       }),
       signal: controller.signal
-    }).finally(() => clearTimeout(timeout));
+    });
+
+    clearTimeout(timeout);
 
     if (!openRouterResponse.ok) {
       const errorText = await openRouterResponse.text();
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
         status: openRouterResponse.status,
         error: errorText
       });
-      return res.status(openRouterResponse.status).json({
+      return res.status(502).json({
         error: `OpenRouter error: ${openRouterResponse.statusText}`
       });
     }
@@ -84,17 +85,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
     
   } catch (error) {
-    console.error('Backend error:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Backend error:', error.message);
     
     let errorMessage = 'Internal server error';
     if (error.name === 'AbortError') {
       errorMessage = 'Request to AI service timed out';
-    } else if (error.name === 'SyntaxError') {
-      errorMessage = 'Invalid JSON format';
     }
     
     return res.status(500).json({ 
