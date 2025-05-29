@@ -1,71 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Chat with Pixel 🦊</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with Aurora 🦭</title>
   <style>
-    body {
-      font-family: 'Comic Sans MS', sans-serif;
-      background: #fef6e4;
-      color: #272343;
+    :root {
+      --water-blue: #e3f2fd;
+      --deep-blue: #0288d1;
+      --light-teal: #80deea;
+      --medium-teal: #4dd0e1;
+      --dark-teal: #0097a7;
+      --white: #ffffff;
+      --shadow: rgba(2, 136, 209, 0.2);
+    }
+    
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--water-blue), var(--light-teal));
+      color: var(--dark-teal);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 2rem;
     }
-    #chat {
-      background: #ffffff;
-      border: 2px solid #ffc6c7;
-      border-radius: 12px;
-      padding: 1rem;
+    
+    .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(178, 235, 242, 0.5);
+    }
+    
+    header {
+      background: linear-gradient(90deg, var(--deep-blue), var(--medium-teal));
+      padding: 25px 20px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    h1 {
+      color: var(--white);
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .subtitle {
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 1.2rem;
+      margin-top: 10px;
+    }
+    
+    .welcome-bubble {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      padding: 15px;
+      margin: 25px auto 15px;
+      max-width: 80%;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 1.1rem;
+    }
+    
+    .chat-container {
+      padding: 20px;
+      position: relative;
+    }
+    
+    #chat {
       height: 400px;
       overflow-y: auto;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      background: rgba(178, 235, 242, 0.15);
+      border-radius: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      border: 2px solid var(--light-teal);
     }
+    
     .message {
-      margin: 0.5rem 0;
+      padding: 15px 20px;
+      border-radius: 20px;
+      max-width: 85%;
+      position: relative;
+      animation: fadeIn 0.3s ease-out;
+      line-height: 1.5;
     }
+    
     .user {
-      color: #7f5af0;
-      font-weight: bold;
+      background: linear-gradient(135deg, var(--deep-blue), var(--medium-teal));
+      color: var(--white);
+      align-self: flex-end;
+      border-bottom-right-radius: 5px;
+      box-shadow: 0 3px 10px rgba(41, 182, 246, 0.3);
     }
+    
     .bot {
-      color: #ff8fab;
-      font-weight: bold;
+      background: linear-gradient(135deg, var(--light-teal), var(--medium-teal));
+      color: var(--white);
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+      box-shadow: 0 3px 10px rgba(77, 208, 225, 0.3);
     }
-    .error {
-      color: #e53170;
-      font-weight: bold;
-    }
+    
     .thinking {
-      color: #999;
-      font-style: italic;
+      background: rgba(128, 222, 234, 0.4);
+      color: var(--dark-teal);
     }
-    input {
-      margin-top: 1rem;
-      padding: 0.5rem;
+    
+    .error {
+      background: #ffebee;
+      color: #c62828;
+    }
+    
+    .message-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    
+    .seal-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    #input {
       width: 100%;
-      max-width: 500px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      padding: 16px 20px;
+      border: none;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), 
+                  0 3px 10px var(--shadow);
       font-size: 1rem;
+      color: var(--dark-teal);
+      transition: all 0.3s ease;
     }
+    
+    #input:focus {
+      outline: none;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), 
+                  0 0 0 3px rgba(0, 188, 212, 0.3);
+      background: var(--white);
+    }
+    
+    #input::placeholder {
+      color: #81d4fa;
+    }
+    
     #status {
-      margin-top: 1rem;
+      margin-top: 15px;
       font-size: 0.9rem;
-      color: #6c757d;
+      color: var(--dark-teal);
+      text-align: center;
+      min-height: 20px;
+    }
+    
+    .water-wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%230288d1" fill-opacity="0.3" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,261.3C672,256,768,224,864,218.7C960,213,1056,235,1152,224C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+      background-size: cover;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .container {
+        border-radius: 15px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+      }
+      
+      #chat {
+        height: 350px;
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Chat with Pixel 🦊</h1>
-  <p>Pixel is a magical fox who loves talking to you! 💬</p>
-  <div id="chat"></div>
-  <input id="input" type="text" placeholder="Say something to Pixel..." autocomplete="off" />
-  <div id="status">Ready to chat!</div>
+  <div class="container">
+    <header>
+      <h1>Chat with Aurora 🦭</h1>
+      <p class="subtitle">Your friendly seal companion</p>
+      <div class="welcome-bubble">Hey Toph! I'm here to keep you company <3</div>
+      <div class="water-wave"></div>
+    </header>
+    
+    <div class="chat-container">
+      <div id="chat"></div>
+      <input id="input" type="text" placeholder="Say something to Aurora..." autocomplete="off" />
+      <div id="status">Ready to chat!</div>
+    </div>
+  </div>
 
   <script>
     const chat = document.getElementById('chat');
@@ -81,8 +241,15 @@
       if (isThinking) msg.classList.add('thinking');
       if (isError) msg.classList.add('error');
       
-      const senderName = sender === 'user' ? 'You' : 'Pixel';
-      msg.innerHTML = isError ? text : `[${senderName}]: ${text}`;
+      const senderName = sender === 'user' ? 'You' : 'Aurora';
+      
+      msg.innerHTML = `
+        <div class="message-header">
+          ${sender === 'bot' ? '<span class="seal-icon">🦭</span>' : ''}
+          ${senderName}
+        </div>
+        ${isError ? text : text}
+      `;
       
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
@@ -91,42 +258,11 @@
 
     function updateStatus(message, isError = false) {
       status.textContent = message;
-      status.style.color = isError ? '#e53170' : '#6c757d';
+      status.style.color = isError ? '#c62828' : '#0288d1';
     }
 
-    async function testBackendConnection() {
-      updateStatus("Checking Pixel's magic cloud...");
-      try {
-        const testResponse = await fetch(BACKEND_URL, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ message: "Connection test" })
-        });
-        
-        if (!testResponse.ok) {
-          const errorData = await testResponse.json().catch(() => ({}));
-          throw new Error(`Backend responded with ${testResponse.status}: ${errorData.error || testResponse.statusText}`);
-        }
-        
-        updateStatus("Ready to chat!");
-        return true;
-      } catch (error) {
-        console.error("Connection test failed:", error);
-        updateStatus("Could not connect to Pixel's magic", true);
-        addMessage(
-          `⚠️ <strong>Initialization Failed!</strong><br>
-          ${error.message}<br>
-          <small>URL: ${BACKEND_URL}</small>`,
-          'bot',
-          false,
-          true
-        );
-        return false;
-      }
-    }
-
-    async function getPixelReply(userMessage) {
-      updateStatus("Contacting Pixel's magic cloud...");
+    async function getAuroraReply(userMessage) {
+      updateStatus("Aurora is connecting to the ocean waves...");
       
       try {
         const response = await fetch(BACKEND_URL, {
@@ -137,7 +273,6 @@
           body: JSON.stringify({ message: userMessage })
         });
 
-        // Handle HTTP errors
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(`${response.status} - ${errorData.error || response.statusText}`);
@@ -148,7 +283,7 @@
         
       } catch (error) {
         console.error("Backend error:", error);
-        throw new Error(`Magic connection failed: ${error.message}`);
+        throw new Error(`Ocean connection failed: ${error.message}`);
       }
     }
 
@@ -159,20 +294,20 @@
         input.value = '';
         input.disabled = true;
         
-        const thinkingMsg = addMessage("Pixel is thinking... 🦊💭", 'bot', true);
-        updateStatus("Pixel is thinking...");
+        const thinkingMsg = addMessage("Aurora is swimming through thoughts... 🦭💭", 'bot', true);
+        updateStatus("Aurora is thinking...");
 
         try {
-          const pixelReply = await getPixelReply(userMsg);
+          const auroraReply = await getAuroraReply(userMsg);
           chat.removeChild(thinkingMsg);
-          addMessage(pixelReply, 'bot');
-          updateStatus("Pixel replied!");
+          addMessage(auroraReply, 'bot');
+          updateStatus("Aurora responded!");
         } catch (error) {
           chat.removeChild(thinkingMsg);
           addMessage(
-            `🦊 <strong>Pixel's Magic Alert!</strong><br>
+            `🦭 <strong>Ocean Currents Problem!</strong><br>
             ${error.message}<br>
-            <small>Check browser console for details</small>`,
+            <small>Try again when waves are calmer</small>`,
             'bot',
             false,
             true
@@ -185,8 +320,13 @@
       }
     });
     
-    // Test backend connection on load
-    testBackendConnection();
+    // Add welcome message
+    setTimeout(() => {
+      addMessage("Hello Toph! I'm Aurora, your friendly seal companion! 🦭 I'm here to swim alongside you through any topic! What's on your mind today?", 'bot');
+    }, 1000);
+    
+    // Focus input
+    input.focus();
   </script>
 </body>
 </html>
