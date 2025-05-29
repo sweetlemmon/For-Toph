@@ -161,9 +161,9 @@
   </div>
 
   <script>
-    const chatEl = document.getElementById('chat');
+    const chatEl  = document.getElementById('chat');
     const inputEl = document.getElementById('input');
-    const statusEl = document.getElementById('status');
+    const statusEl= document.getElementById('status');
     const BACKEND_URL = '/api/chat';
 
     let convo = [];
@@ -191,17 +191,25 @@
 
     async function getReply(userTxt) {
       updateStatus('Aurora is swimming through waves...');
+      // push user turn
       convo.push({ role:'user', content: userTxt });
+
+      // keep only last 12 turns to avoid huge payloads:
+      const recent = convo.slice(-12);
+
       const res = await fetch(BACKEND_URL, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ history: convo })
+        body: JSON.stringify({ history: recent })
       });
+
       if (!res.ok) {
         const e = await res.json().catch(()=>({}));
         throw new Error(e.error || res.statusText);
       }
       const { reply } = await res.json();
+
+      // add assistant response
       convo.push({ role:'assistant', content: reply });
       return reply;
     }
@@ -213,6 +221,7 @@
         updateStatus('Too long! Try shorter splash 🐚', true);
         return;
       }
+
       addMessage(txt, 'user');
       inputEl.value = '';
       inputEl.disabled = true;
@@ -224,10 +233,11 @@
         addMessage(r, 'bot');
         updateStatus('Aurora responded!');
       } catch(err) {
-        chatEl.removeChild(thinkingEl);
-        addMessage('🌧️ Oops! Something went wrong.', 'bot', false, true);
-        updateStatus('Connection issue detected', true);
         console.error(err);
+        chatEl.removeChild(thinkingEl);
+        // show the real error message:
+        addMessage(`🌧️ Oops! ${err.message}`, 'bot', false, true);
+        updateStatus('Connection issue detected', true);
       } finally {
         inputEl.disabled = false;
         inputEl.focus();
@@ -245,7 +255,6 @@
   </script>
 </body>
 </html>
-
 
 
 
