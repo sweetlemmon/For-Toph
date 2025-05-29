@@ -1,6 +1,6 @@
 // api/chat.js
 export default async function handler(req, res) {
-  // CORS for your Vercel site only
+  // Restrict CORS to your site
   res.setHeader('Access-Control-Allow-Origin', 'https://for-toph.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    // build messages: system prompt + user/assistant turns
+    // Build the full message list
     const messages = [
       {
         role: 'system',
@@ -36,10 +36,7 @@ export default async function handler(req, res) {
       ...history
     ];
 
-    // timeout controller
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
+    // Call OpenRouter without an AbortController (no early timeout)
     const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -53,31 +50,30 @@ export default async function handler(req, res) {
         messages,
         max_tokens: 150,
         temperature: 0.7
-      }),
-      signal: controller.signal
+      })
     });
-    clearTimeout(timeout);
 
     if (!openRouterRes.ok) {
       const errText = await openRouterRes.text();
-      console.error('OpenRouter error', openRouterRes.status, errText);
+      console.error('OpenRouter error:', openRouterRes.status, errText);
       return res.status(502).json({
         error: `Aurora couldn’t reach the ocean: ${openRouterRes.statusText}`
       });
     }
 
-    const data = await openRouterRes.json();
-    const reply = data.choices?.[0]?.message?.content?.trim()
+    const { choices } = await openRouterRes.json();
+    const reply = choices?.[0]?.message?.content?.trim()
       || "Aurora is swimming deep underwater... 🦭🌊 Try again later!";
 
-    res.status(200).json({ reply });
+    return res.status(200).json({ reply });
+
   } catch (err) {
     console.error('Backend error:', err);
-    const isTimeout = err.name === 'AbortError';
-    res.status(500).json({
-      error: `Ocean currents disrupted: ${isTimeout ? 'Request timed out' : 'Internal server error'}`
+    return res.status(500).json({
+      error: `Ocean currents disrupted: ${err.message || 'Internal server error'}`
     });
   }
 }
+
 
 
